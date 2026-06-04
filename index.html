@@ -292,9 +292,35 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
 <div id="tab-history" class="section">
   <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button onclick="exportData()" style="flex:1;padding:9px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;font-size:12px;cursor:pointer;color:var(--text2);font-family:'DM Sans',sans-serif">⬇ Export backup</button>
-    <button onclick="importData()" style="flex:1;padding:9px;border-radius:8px;border:0.5px solid var(--blue);background:var(--blue-dim);font-size:12px;cursor:pointer;color:var(--blue-text);font-family:'DM Sans',sans-serif">⬆ Import backup</button>
+    <button onclick="exportData()" style="flex:1;padding:9px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;font-size:12px;cursor:pointer;color:var(--text2);font-family:'DM Sans',sans-serif">⬇ Export</button>
+    <button onclick="importData()" style="flex:1;padding:9px;border-radius:8px;border:0.5px solid var(--blue);background:var(--blue-dim);font-size:12px;cursor:pointer;color:var(--blue-text);font-family:'DM Sans',sans-serif">⬆ Import</button>
+    <button onclick="togglePastLogger()" id="past-log-toggle-btn" style="flex:1;padding:9px;border-radius:8px;border:0.5px solid var(--legs);background:#1E0D2E;font-size:12px;cursor:pointer;color:#C084FC;font-family:'DM Sans',sans-serif">+ Log past</button>
   </div>
+
+  <!-- Past session logger -->
+  <div id="past-logger" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">Log a past session</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px">DATE</div>
+          <input type="date" id="past-date-inp" class="edit-inp" style="width:100%" max="">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px">SESSION</div>
+          <select id="past-sess-inp" class="edit-inp" style="width:100%;-webkit-appearance:none">
+            <option value="push">🤜 Push</option>
+            <option value="pull">🤛 Pull</option>
+            <option value="legs">🦵 Legs</option>
+            <option value="rest">😴 Rest</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="loadPastWorkout()" style="width:100%;padding:9px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Load workout →</button>
+    </div>
+    <div id="past-workout-area"></div>
+  </div>
+
   <div class="sec-label">Session log</div>
   <div class="card" id="history-list"><div class="empty">No sessions yet.</div></div>
 </div>
@@ -1180,8 +1206,177 @@ function resetToDefaults(){
   save();renderEditList();
 }
 
+// active date — overridden when logging past sessions
+let activeDate=null;
+function getActiveDate(){return activeDate||today();}
+
+function togglePastLogger(){
+  const el=document.getElementById('past-logger');
+  const btn=document.getElementById('past-log-toggle-btn');
+  const visible=el.style.display!=='none';
+  el.style.display=visible?'none':'block';
+  btn.style.background=visible?'#1E0D2E':'var(--legs)';
+  btn.style.color=visible?'#C084FC':'#fff';
+  if(!visible){
+    // default to yesterday
+    const d=new Date();d.setDate(d.getDate()-1);
+    document.getElementById('past-date-inp').value=d.toISOString().split('T')[0];
+    document.getElementById('past-date-inp').max=today();
+    document.getElementById('past-workout-area').innerHTML='';
+    activeDate=null;
+  }
+}
+
+function loadPastWorkout(){
+  const date=document.getElementById('past-date-inp').value;
+  const sid=document.getElementById('past-sess-inp').value;
+  if(!date){alert('Pick a date first.');return;}
+  if(date>today()){alert('Cannot log future dates.');return;}
+  activeDate=date;
+  if(sid==='rest'){
+    // just mark as rest
+    S.sessions=S.sessions.filter(s=>!(s.date===date&&s.sessionId==='rest'));
+    S.sessions.push({date,sessionId:'rest',label:'Rest'});
+    save();
+    document.getElementById('past-workout-area').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem;margin-bottom:12px">
+      <div style="font-size:28px">😴</div>
+      <div style="font-size:14px;font-weight:600;margin-top:8px">Rest day logged for ${date}</div>
+    </div>`;
+    renderHistory();
+    activeDate=null;
+    return;
+  }
+  const sess=SESSIONS[sid];
+  if(!sess)return;
+  const exercises=getExercises(sid);
+  // check if already logged this date+session
+  const alreadyLogged=S.sessions.some(s=>s.date===date&&s.sessionId===sid);
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:14px;font-weight:600;color:var(--text)">${sess.icon} ${sess.label} — ${date}</div>
+    ${alreadyLogged?`<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--yellow)">updating existing</span>`:''}
+  </div>`;
+  // render exercises using activeDate for logKey
+  const mainExs=exercises.filter(e=>!e.mobility);
+  const mobExs=exercises.filter(e=>e.mobility);
+  const preExs=mobExs.filter((_,i)=>i<2);
+  const postExs=mobExs.filter((_,i)=>i>=2);
+  if(preExs.length){html+=`<div class="sec-label">Pre-session mobility</div>`;preExs.forEach(ex=>{const ei=exercises.indexOf(ex);html+=renderPastEx(sid,ex,ei,date);});}
+  html+=`<div class="sec-label">Main workout</div>`;
+  mainExs.forEach(ex=>{const ei=exercises.indexOf(ex);html+=renderPastEx(sid,ex,ei,date);});
+  if(postExs.length){html+=`<div class="sec-label">Post-session stretch</div>`;postExs.forEach(ex=>{const ei=exercises.indexOf(ex);html+=renderPastEx(sid,ex,ei,date);});}
+  html+=`<button onclick="finishPastSession('${sid}','${date}')" class="finish-btn" style="margin-bottom:16px">✓ Save past session — ${date}</button>`;
+  document.getElementById('past-workout-area').innerHTML=html;
+}
+
+function pastLogKey(date,sid,ei,si){return`${date}_${sid}_${ei}_${si}`;}
+
+function renderPastEx(sid,ex,ei,date){
+  const repsDisplay=Array.isArray(ex.reps)?ex.reps.join(' → '):ex.reps;
+  let html=`<div class="ex-card" style="margin-bottom:8px">
+    <div class="ex-header" onclick="togglePastEx('past-body-${ei}','past-chev-${ei}')">
+      <div class="ex-name-wrap">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">${ex.sets} sets · ${repsDisplay}</div>
+      </div>
+      <div class="chevron" id="past-chev-${ei}">⌄</div>
+    </div>
+    <div class="ex-body open" id="past-body-${ei}">`;
+  if(!ex.mobility){
+    html+=`<div class="effort-legend"><span>Tap effort to log set — fill in kg and reps from memory</span></div>`;
+    for(let si=0;si<ex.sets;si++){
+      const k=pastLogKey(date,sid,ei,si);
+      const sv=S.setLogs[k]||{};
+      const targetReps=Array.isArray(ex.reps)?String(ex.reps[si]||ex.reps[ex.reps.length-1]):String(ex.reps);
+      const defaultKg=sv.kg||(ex.startKg>0?String(ex.startKg):'');
+      const defaultReps=sv.reps||targetReps;
+      html+=`<div class="set-block ${sv.done?'set-done':''}" id="past-set-${ei}-${si}">
+        <div class="set-top">
+          <span class="set-label" style="color:${sv.done?'var(--green-text)':'var(--text3)'}">Set ${si+1}<br><span style="font-size:10px;opacity:.7">${targetReps} reps</span></span>
+          <input type="number" class="set-inp" placeholder="kg" value="${defaultKg}" id="past-kg-${ei}-${si}" step="2.5" oninput="savePastInput('${sid}','${date}',${ei},${si})">
+          <input type="text" inputmode="numeric" class="set-inp" placeholder="reps" value="${defaultReps}" id="past-reps-${ei}-${si}" oninput="savePastInput('${sid}','${date}',${ei},${si})">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--green-text);min-width:32px;text-align:right" id="past-tick-${ei}-${si}">${sv.done?'✓':''}</div>
+        </div>
+        <div class="effort-row">
+          <span class="effort-label-sm">Effort:</span>
+          ${[1,2,3,4,5].map(e=>`<button class="eff-btn e${e} ${sv.effort===e?'sel':''}" onclick="setPastEffort('${sid}','${date}',${ei},${si},${e},this)">${e}</button>`).join('')}
+        </div>
+      </div>`;
+    }
+  } else {
+    for(let si=0;si<ex.sets;si++){
+      const k=pastLogKey(date,sid,ei,si);const sv=S.setLogs[k]||{};
+      html+=`<div style="margin-bottom:6px"><button class="mob-done-btn ${sv.done?'done':''}" onclick="togglePastMob('${sid}','${date}',${ei},${si},this)">${sv.done?'✓ Done':'Mark done'}</button></div>`;
+    }
+  }
+  html+=`</div></div>`;
+  return html;
+}
+
+function togglePastEx(bodyId,chevId){
+  document.getElementById(bodyId)?.classList.toggle('open');
+  document.getElementById(chevId)?.classList.toggle('open');
+}
+
+function savePastInput(sid,date,ei,si){
+  const k=pastLogKey(date,sid,ei,si);
+  if(!S.setLogs[k])S.setLogs[k]={};
+  const kg=document.getElementById(`past-kg-${ei}-${si}`)?.value;
+  const reps=document.getElementById(`past-reps-${ei}-${si}`)?.value;
+  if(kg!==undefined)S.setLogs[k].kg=kg;
+  if(reps!==undefined)S.setLogs[k].reps=reps;
+  save();
+}
+
+function setPastEffort(sid,date,ei,si,e,btn){
+  const k=pastLogKey(date,sid,ei,si);
+  if(!S.setLogs[k])S.setLogs[k]={};
+  // save inputs
+  const kg=document.getElementById(`past-kg-${ei}-${si}`)?.value;
+  const reps=document.getElementById(`past-reps-${ei}-${si}`)?.value;
+  if(kg!==undefined)S.setLogs[k].kg=kg;
+  if(reps!==undefined)S.setLogs[k].reps=reps;
+  const same=S.setLogs[k].effort===e;
+  S.setLogs[k].effort=same?null:e;
+  S.setLogs[k].done=!same;
+  save();
+  btn.closest('.effort-row').querySelectorAll('.eff-btn').forEach((b,i)=>{
+    b.className=`eff-btn e${i+1}${S.setLogs[k].effort===i+1?' sel':''}`;
+  });
+  const block=document.getElementById(`past-set-${ei}-${si}`);
+  if(block){
+    block.classList.toggle('set-done',S.setLogs[k].done);
+    const label=block.querySelector('.set-label');
+    if(label)label.style.color=S.setLogs[k].done?'var(--green-text)':'var(--text3)';
+  }
+  const tick=document.getElementById(`past-tick-${ei}-${si}`);
+  if(tick)tick.textContent=S.setLogs[k].done?'✓':'';
+}
+
+function togglePastMob(sid,date,ei,si,btn){
+  const k=pastLogKey(date,sid,ei,si);
+  if(!S.setLogs[k])S.setLogs[k]={};
+  S.setLogs[k].done=!S.setLogs[k].done;
+  btn.className='mob-done-btn '+(S.setLogs[k].done?'done':'');
+  btn.textContent=S.setLogs[k].done?'✓ Done':'Mark done';
+  save();
+}
+
+function finishPastSession(sid,date){
+  S.sessions=S.sessions.filter(s=>!(s.date===date&&s.sessionId===sid));
+  S.sessions.push({date,sessionId:sid,label:SESSIONS[sid].label,isPast:true});
+  save();
+  activeDate=null;
+  document.getElementById('past-workout-area').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem;margin-bottom:12px">
+    <div style="font-size:28px">${SESSIONS[sid].icon}</div>
+    <div style="font-size:14px;font-weight:600;margin-top:8px">${SESSIONS[sid].label} saved for ${date}</div>
+    <div style="font-size:12px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace">Appears in session log below</div>
+    <button onclick="loadPastWorkout()" style="margin-top:10px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;cursor:pointer;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif">Log another date</button>
+  </div>`;
+  renderHistory();
+  renderProgress();
+}
+
 function exportData(){
-  const json=JSON.stringify(S,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');

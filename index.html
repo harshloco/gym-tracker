@@ -26,7 +26,7 @@
   --push:#F97316;--pull:#3B82F6;--legs:#A855F7;--rest:#555;
 }}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:90px;font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:130px;font-size:15px}
 .app{max-width:600px;margin:0 auto;padding:14px 14px 0}
 .mono{font-family:'DM Mono',monospace}
 
@@ -150,15 +150,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .mob-done-btn.done{background:var(--green-dim);color:var(--green-text);border-color:var(--green)}
 
 /* ── Bottom bar ── */
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);padding:10px 16px 20px;z-index:30;max-width:600px;margin:0 auto}
-.bottom-bar-inner{display:flex;align-items:center;gap:10px}
-.bb-time{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);min-width:70px}
-.bb-meta{flex:1}
-.bb-sets{font-size:12px;font-family:'DM Mono',monospace;color:var(--text2)}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);padding:12px 16px calc(16px + env(safe-area-inset-bottom));z-index:30;max-width:600px;margin:0 auto;box-shadow:0 -2px 12px rgba(0,0,0,.06)}
+@media(prefers-color-scheme:dark){.bottom-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4)}}
+.bottom-bar-inner{display:flex;align-items:center;gap:12px}
+.bb-time{font-size:26px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);line-height:1.1}
+.bb-meta{flex:1;min-width:0}
+.bb-sets{font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);margin-top:2px}
 .bb-next{font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bb-prog-bg{height:3px;background:var(--surface2);border-radius:2px;margin-top:4px;overflow:hidden}
+.bb-prog-bg{height:3px;background:var(--surface2);border-radius:2px;margin-top:5px;overflow:hidden}
 .bb-prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
-.finish-btn{padding:10px 18px;border-radius:var(--radius-lg);border:none;background:var(--green);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.finish-btn{padding:9px 18px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
 .bottom-bar.hidden{display:none}
 
 /* ── Progress tab ── */
@@ -213,7 +214,57 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .past-set-row:last-of-type{border-bottom:none}
 .past-set-row.logged{background:var(--green-dim);border-radius:8px;padding-left:6px;padding-right:6px;margin-left:-6px;margin-right:-6px}
 
+/* ── Custom modal (native confirm/prompt fail in iOS PWA) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border-radius:16px;padding:20px;max-width:340px;width:100%;border:0.5px solid var(--border)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.modal-msg{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.modal-input{width:100%;font-size:16px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;color:var(--text);padding:10px 12px;font-family:'DM Mono',monospace;text-align:center;margin-bottom:16px}
+.modal-input:focus{outline:none;border-color:var(--green)}
+.modal-btns{display:flex;gap:8px}
+.modal-btn{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:0.5px solid var(--border2);background:transparent;color:var(--text2)}
+.modal-btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.modal-btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
+
 /* ── Misc ── */
+/* ── Insights ── */
+.insight-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.insight-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:0.5px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-label{font-size:13px;color:var(--text2)}
+.stat-val{font-size:14px;font-weight:600;font-family:'DM Mono',monospace}
+.proj-row{padding:10px 0;border-bottom:0.5px solid var(--border)}
+.proj-row:last-child{border-bottom:none}
+.proj-lift{font-size:13px;font-weight:600;margin-bottom:6px}
+.proj-timeline{display:flex;gap:0;margin-top:6px}
+.proj-milestone{flex:1;text-align:center}
+.proj-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 4px;border:2px solid var(--border2)}
+.proj-dot.reached{background:var(--green);border-color:var(--green)}
+.proj-dot.current{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.proj-dot.future{background:transparent;border-color:var(--border2)}
+.proj-line{height:2px;background:var(--border);flex:1;margin-top:4px;align-self:flex-start;margin-top:8px}
+.proj-line.done{background:var(--green)}
+.proj-kg{font-size:12px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text)}
+.proj-when{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px}
+.trend-up{color:var(--green-text)}.trend-down{color:var(--red)}.trend-flat{color:var(--text3)}
+.consistency-bar{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
+.con-dot{width:14px;height:14px;border-radius:3px;background:var(--surface2);border:0.5px solid var(--border)}
+.con-dot.push{background:var(--orange-dim);border-color:var(--push)}
+.con-dot.pull{background:var(--blue-dim);border-color:var(--pull)}
+.con-dot.legs{background:#EDE9F8;border-color:var(--legs)}
+@media(prefers-color-scheme:dark){.con-dot.legs{background:#1E0D2E}}
+.con-dot.rest{background:var(--surface2);opacity:.4}
+.con-dot.skip{background:var(--red-dim);border-color:var(--red);opacity:.5}
+.big-stat{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+.big-stat-label{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.three-col-item{background:var(--surface);padding:12px 8px;text-align:center}
+.volume-bar-row{display:flex;align-items:flex-end;gap:4px;height:60px;margin-top:10px}
+.vol-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.vol-bar{width:100%;border-radius:3px 3px 0 0;background:var(--blue-dim);border:0.5px solid var(--blue);min-height:2px;transition:height .3s}
+.vol-bar-label{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);white-space:nowrap}
 .empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:13px}
 .tag{font-size:10px;padding:2px 7px;border-radius:99px;display:inline-block;font-family:'DM Mono',monospace}
 input[type=number]{-moz-appearance:textfield}
@@ -236,6 +287,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   <button class="tab" onclick="switchTab('progress',this)">Progress</button>
   <button class="tab" onclick="switchTab('nutrition',this)">Nutrition</button>
   <button class="tab" onclick="switchTab('history',this)">History</button>
+  <button class="tab" onclick="switchTab('insights',this)">Insights</button>
   <button class="tab" onclick="switchTab('edit',this)">Edit</button>
 </div>
 
@@ -319,6 +371,9 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
   <div class="sec-label">Session log</div>
   <div class="card" id="history-list"><div class="empty">No sessions yet.</div></div>
+  <div style="text-align:center;margin-top:12px;margin-bottom:20px">
+    <button onclick="clearAllData()" style="font-size:11px;color:var(--red);border:0.5px solid var(--red);background:transparent;cursor:pointer;font-family:'DM Mono',monospace;padding:6px 14px;border-radius:6px">Clear all data</button>
+  </div>
 </div>
 
 <!-- EDIT -->
@@ -357,18 +412,42 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 </div>
 
+<!-- INSIGHTS -->
+<div id="tab-insights" class="section">
+  <div id="insights-content"><div class="empty">Loading insights...</div></div>
+</div>
+
 </div><!-- /app -->
 
 <!-- BOTTOM BAR (shown during workout) -->
+<!-- CUSTOM MODAL (iOS PWA safe) -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-msg" id="modal-msg"></div>
+    <input type="number" class="modal-input" id="modal-input" style="display:none">
+    <div class="modal-btns">
+      <button class="modal-btn" id="modal-cancel" onclick="closeModal(false)">Cancel</button>
+      <button class="modal-btn primary" id="modal-ok" onclick="closeModal(true)">OK</button>
+    </div>
+  </div>
+</div>
+
 <div class="bottom-bar hidden" id="bottom-bar">
   <div class="bottom-bar-inner">
-    <div class="bb-time" id="bb-time">0:00</div>
     <div class="bb-meta">
+      <div class="bb-time" id="bb-time">0:00</div>
       <div class="bb-sets" id="bb-sets">0 / 0 sets</div>
       <div class="bb-next" id="bb-next"></div>
       <div class="bb-prog-bg"><div class="bb-prog-fill" id="bb-prog-fill" style="width:0%"></div></div>
     </div>
-    <button class="finish-btn" id="finish-btn" onclick="finishSession()">Done ✓</button>
+    <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+      <button class="finish-btn" id="finish-btn" onclick="finishSession()">Done ✓</button>
+      <div style="display:flex;gap:5px">
+        <button onclick="resetSessionSets()" style="flex:1;padding:7px 8px;border-radius:10px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">Reset</button>
+        <button onclick="cancelWorkout()" style="flex:1;padding:7px 8px;border-radius:10px;border:0.5px solid var(--red);background:transparent;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -384,32 +463,32 @@ const DEFAULT_REST=180; // seconds
 
 const SESSIONS={
   push:{id:'push',label:'Push',icon:'🤜',color:'var(--push)',tag:'push',muscles:'Chest · Shoulders · Triceps',exercises:[
-    {name:'Incline DB press',sets:4,reps:[12,10,8,6],startKg:10,repRange:[6,12],compound:true,glute:false,mobility:false,note:'Primary chest compound — do first while fresh. Bench at 30–45°. Lower DBs to upper chest, elbows slightly below shoulder height. Press up and slightly inward, squeeze chest hard at top. 3-second lower. Reverse pyramid — start lighter for 12 reps, add 2.5kg each set.'},
-    {name:'Cable chest fly',sets:3,reps:[12,10,10],startKg:8,repRange:[8,12],compound:false,glute:false,mobility:false,note:'Cables at chest height. Stand centre, slight forward lean. Arms slightly bent — keep that bend, this is NOT a press. Bring hands together in a wide arc, squeeze chest hard at centre. Slow 3-second return feeling the stretch at the bottom.'},
-    {name:'DB shoulder press',sets:3,reps:[12,10,8],startKg:8,repRange:[8,12],compound:false,glute:false,mobility:false,note:'Seated, back supported. DBs at ear height, palms forward. Press straight up, stop short of lockout. Ribs down — no lower back arch. Reverse pyramid.'},
-    {name:'Cable lateral raise',sets:3,reps:'15',startKg:5,repRange:[12,20],compound:false,glute:false,mobility:false,note:'Cable lowest, handle in opposite hand. Raise arm to shoulder height — elbow leads, not wrist. Constant tension unlike DBs. Controlled 3-second return.'},
-    {name:'Tricep pushdown (rope)',sets:3,reps:'12',startKg:15,repRange:[10,15],compound:false,glute:false,mobility:false,note:'Cable high, rope attachment. Elbows pinned to sides — must not move forward. Push down until arms straight, split rope slightly at bottom, squeeze triceps hard. Controlled return to 90°.'},
-    {name:'Overhead tricep extension',sets:3,reps:'12',startKg:10,repRange:[10,15],compound:false,glute:false,mobility:false,note:'Cable low, rope attachment. Face away from cable. Elbows by ears — only forearms move. Extend fully overhead, squeeze triceps at top. Slow return. Hits the long head — do both this and pushdown for full tricep development.'},
-    {name:'Face pull (cable)',sets:3,reps:'15',startKg:10,repRange:[12,20],compound:false,glute:false,mobility:false,note:'Cable at face height, rope. Pull to face — hands either side of ears, elbows HIGH and flared OUT. Trains rear delts and external rotators. Critical for shoulder health every push session.'},
+    {name:'Incline DB press',sets:4,repRange:[6,10],startKg:10,compound:true,glute:false,mobility:false,note:'Primary chest compound — do first while fresh. Bench at 30–45°. Lower DBs to upper chest, elbows slightly below shoulder height. Press up and slightly inward, squeeze chest hard at top. 3-second lower. Same weight all sets — beat last session\'s reps.'},
+    {name:'Cable chest fly',sets:3,repRange:[10,14],startKg:8,compound:false,glute:false,mobility:false,note:'Cables at chest height. Slight forward lean. Arms slightly bent — keep that bend, this is NOT a press. Bring hands together in a wide arc, squeeze chest hard at centre. Slow 3-second return feeling the stretch at the bottom.'},
+    {name:'DB shoulder press',sets:3,repRange:[8,12],startKg:8,compound:false,glute:false,mobility:false,note:'Seated, back supported. DBs at ear height, palms forward. Press straight up, stop short of lockout. Ribs down — no lower back arch.'},
+    {name:'Cable lateral raise',sets:3,repRange:[12,18],startKg:5,compound:false,glute:false,mobility:false,note:'Cable lowest, handle in opposite hand. Raise arm to shoulder height — elbow leads, not wrist. Constant tension unlike DBs. Controlled 3-second return. Small muscle — high reps, light weight.'},
+    {name:'Tricep pushdown (rope)',sets:3,repRange:[10,14],startKg:15,compound:false,glute:false,mobility:false,note:'Cable high, rope attachment. Elbows pinned to sides — must not move forward. Push down until arms straight, split rope slightly at bottom, squeeze triceps hard. Controlled return to 90°.'},
+    {name:'Overhead tricep extension',sets:3,repRange:[10,14],startKg:10,compound:false,glute:false,mobility:false,note:'Cable low, rope attachment. Face away from cable. Elbows by ears — only forearms move. Extend fully overhead, squeeze at top. Hits the long head — the biggest part of the tricep.'},
+    {name:'Face pull (cable)',sets:3,repRange:[15,20],startKg:10,compound:false,glute:false,mobility:false,note:'Cable at face height, rope. Pull to face — hands either side of ears, elbows HIGH and flared OUT. Rotator cuff and rear delts. High reps, light weight. Critical for shoulder health every push session.'},
   ]},
   pull:{id:'pull',label:'Pull',icon:'🤛',color:'var(--pull)',tag:'pull',muscles:'Back · Biceps · Rear delts',exercises:[
-    {name:'Cable row (seated)',sets:4,reps:[12,10,8,6],startKg:25,repRange:[6,12],compound:true,glute:false,mobility:false,note:'Do first while fresh. Sit upright, pull handle to lower abdomen — elbows drive BACK. Squeeze shoulder blades hard at end. Chest tall. Controlled return with full stretch. Reverse pyramid.'},
-    {name:'Lat pulldown',sets:3,reps:[12,10,8],startKg:25,repRange:[8,12],compound:true,glute:false,mobility:false,note:'Grip just wider than shoulders, lean back slightly. Pull bar to upper chest — elbows drive DOWN and BACK. Feel lats, not biceps. Slow 3-second return with full stretch at top. Reverse pyramid.'},
-    {name:'Incline DB curl',sets:3,reps:'12',startKg:8,repRange:[10,15],compound:false,glute:false,mobility:false,note:'Incline bench 45–60°. Arms hang fully straight at bottom — the stretch is what makes this superior. Curl up, squeeze hard at top. Lower fully. No swinging.'},
-    {name:'Rear delt fly',sets:3,reps:'15',startKg:5,repRange:[12,20],compound:false,glute:false,mobility:false,note:'Lean forward 45° or use cable. Arms slightly bent. Raise out to sides — lead with elbows. Squeeze rear delts at top. Small muscles — 5kg is genuinely hard when done correctly.'},
-    {name:'Hammer curl',sets:3,reps:'12',startKg:10,repRange:[10,15],compound:false,glute:false,mobility:false,note:'Palms facing each other (neutral grip). Curl straight up — do not twist wrist. Targets brachialis which adds visible arm thickness. No body swing.'},
-    {name:'Face pull (cable)',sets:3,reps:'15',startKg:10,repRange:[12,20],compound:false,glute:false,mobility:false,note:'Rope at face height. Elbows high and out. Every upper session. Rear delts and rotator cuff health long-term.'},
+    {name:'Cable row (seated)',sets:4,repRange:[6,10],startKg:25,compound:true,glute:false,mobility:false,note:'Primary back compound — do first while fresh. Sit upright, pull handle to lower abdomen — elbows drive BACK. Squeeze shoulder blades hard at end. Chest tall. Controlled return with full stretch.'},
+    {name:'Lat pulldown',sets:3,repRange:[8,12],startKg:25,compound:true,glute:false,mobility:false,note:'Grip just wider than shoulders, lean back slightly. Pull bar to upper chest — elbows drive DOWN and BACK. Feel lats, not biceps. Slow 3-second return with full stretch at top.'},
+    {name:'Incline DB curl',sets:3,repRange:[10,14],startKg:8,compound:false,glute:false,mobility:false,note:'Incline bench 45–60°. Arms hang fully straight at bottom — the stretch is what makes this superior. Curl up, squeeze hard at top. Lower fully. No swinging.'},
+    {name:'Rear delt fly',sets:3,repRange:[12,18],startKg:5,compound:false,glute:false,mobility:false,note:'Lean forward 45° or use cable. Arms slightly bent. Raise out to sides — lead with elbows. Squeeze rear delts at top. Small muscle — high reps, light weight.'},
+    {name:'Hammer curl',sets:3,repRange:[10,14],startKg:10,compound:false,glute:false,mobility:false,note:'Palms facing each other (neutral grip). Curl straight up — do not twist wrist. Targets brachialis which adds visible arm thickness. No body swing.'},
+    {name:'Face pull (cable)',sets:3,repRange:[15,20],startKg:10,compound:false,glute:false,mobility:false,note:'Rope at face height. Elbows high and out. Every upper session. Rear delts and rotator cuff health long-term.'},
   ]},
   legs:{id:'legs',label:'Legs',icon:'🦵',color:'var(--legs)',tag:'legs',muscles:'Quads · Hamstrings · Calves · Abs',exercises:[
-    {name:'90/90 hip stretch',sets:2,reps:'60s/side',startKg:0,repRange:null,compound:false,glute:false,mobility:true,note:'Sit on floor. Front leg 90° in front, rear leg 90° to side. Sit tall, rotate to face front knee. Opens hip capsule. Non-negotiable given your lower back history.'},
-    {name:'Glute bridge hold',sets:3,reps:'20s hold',startKg:0,repRange:null,compound:false,glute:false,mobility:true,note:'Lie on back, knees bent, feet flat. Drive hips up, squeeze glutes HARD. Hold. Wakes up glutes and activates posterior chain before the session.'},
-    {name:'Leg extension',sets:4,reps:[15,12,10,10],startKg:20,repRange:[10,15],compound:false,glute:false,mobility:false,note:'Adjust seat so knee joint aligns with machine pivot. Extend fully, squeeze quads hard at top for 1 second. Slow 3-second lower. Lighter first set to warm up knee joint properly.'},
-    {name:'Seated leg curl',sets:4,reps:[15,12,10,10],startKg:20,repRange:[10,15],compound:false,glute:false,mobility:false,note:'Pad just above heel. Full range — let weight stretch hamstring at top before curling. Squeeze hard at bottom, hold 1 second. Slow 3-second return. Seated version keeps more tension at the stretched position.'},
-    {name:'Calf raise',sets:4,reps:'15',startKg:30,repRange:[12,20],compound:false,glute:false,mobility:false,note:'Full range — heel below platform at bottom, fully on toes at top. Hold 1 second at top. Calves respond to full range and high reps more than any other muscle.'},
-    {name:'Dead bug (abs)',sets:3,reps:'10 slow',startKg:0,repRange:null,compound:false,glute:false,mobility:false,note:'Lie on back. Arms up, knees bent 90° in air. Press lower back FLAT into floor. Slowly lower opposite arm and leg without letting back arch. Zero spinal compression — safe for your lower back.'},
-    {name:'Plank',sets:3,reps:'30–45s',startKg:0,repRange:null,compound:false,glute:false,mobility:false,note:'Forearms on floor, body straight head to heels. Squeeze glutes, brace abs hard. Breathe normally. Do NOT let hips sag or pike. Add 5–10 seconds each week.'},
-    {name:'Couch stretch',sets:2,reps:'60s/side',startKg:0,repRange:null,compound:false,glute:false,mobility:true,note:'Kneeling lunge. Tuck pelvis under and push hips forward gently. Hip flexors tighten significantly after legs — always do post-session.'},
-    {name:'Cat-cow',sets:1,reps:'10 reps',startKg:0,repRange:null,compound:false,glute:false,mobility:true,note:'On hands and knees. Cat: round spine up. Cow: arch down, lift head and tailbone. Move slowly. Decompresses lumbar spine. End every leg session with this.'},
+    {name:'90/90 hip stretch',sets:2,repRange:null,reps:'60s/side',startKg:0,compound:false,glute:false,mobility:true,note:'Sit on floor. Front leg 90° in front, rear leg 90° to side. Sit tall, rotate to face front knee. Opens hip capsule. Non-negotiable given your lower back history.'},
+    {name:'Glute bridge hold',sets:3,repRange:null,reps:'20s hold',startKg:0,compound:false,glute:false,mobility:true,note:'Lie on back, knees bent, feet flat. Drive hips up, squeeze glutes HARD. Hold. Wakes up glutes and activates posterior chain before the session.'},
+    {name:'Leg extension',sets:4,repRange:[10,14],startKg:20,compound:false,glute:false,mobility:false,note:'Adjust seat so knee joint aligns with machine pivot. Extend fully, squeeze quads hard at top for 1 second. Slow 3-second lower. Same weight all sets — beat last session\'s reps.'},
+    {name:'Seated leg curl',sets:4,repRange:[10,14],startKg:20,compound:false,glute:false,mobility:false,note:'Pad just above heel. Full range — let weight stretch hamstring at top before curling. Squeeze hard at bottom, hold 1 second. Slow 3-second return.'},
+    {name:'Calf raise',sets:4,repRange:[12,18],startKg:30,compound:false,glute:false,mobility:false,note:'Full range — heel below platform at bottom, fully on toes at top. Hold 1 second at top. Calves respond to full range and high reps more than any other muscle.'},
+    {name:'Dead bug (abs)',sets:3,repRange:null,reps:'10 slow',startKg:0,compound:false,glute:false,mobility:false,note:'Lie on back. Arms up, knees bent 90° in air. Press lower back FLAT into floor. Slowly lower opposite arm and leg without letting back arch. Zero spinal compression — safe for your lower back.'},
+    {name:'Plank',sets:3,repRange:null,reps:'30–45s',startKg:0,compound:false,glute:false,mobility:false,note:'Forearms on floor, body straight head to heels. Squeeze glutes, brace abs hard. Breathe normally. Do NOT let hips sag or pike. Add 5–10 seconds each week.'},
+    {name:'Couch stretch',sets:2,repRange:null,reps:'60s/side',startKg:0,compound:false,glute:false,mobility:true,note:'Kneeling lunge. Tuck pelvis under and push hips forward gently. Hip flexors tighten significantly after legs — always do post-session.'},
+    {name:'Cat-cow',sets:1,repRange:null,reps:'10 reps',startKg:0,compound:false,glute:false,mobility:true,note:'On hands and knees. Cat: round spine up. Cow: arch down, lift head and tailbone. Move slowly. Decompresses lumbar spine. End every leg session with this.'},
   ]},
   rest:{id:'rest',label:'Rest',icon:'😴',color:'var(--rest)',tag:'rest',muscles:'Recovery',exercises:[]}
 };
@@ -424,6 +503,54 @@ let S={startDate:null,setLogs:{},sessions:[],bodyMetrics:[],meals:{},currentSess
 let workoutTimerInterval=null;
 let restTimerInterval=null;
 let activeDate=null;
+
+// ─────────────────────────────────────────────
+// CUSTOM MODAL (native confirm/prompt fail in iOS PWA)
+// ─────────────────────────────────────────────
+let modalResolve=null;
+
+function showConfirm(title,msg,opts={}){
+  return new Promise(resolve=>{
+    modalResolve=resolve;
+    document.getElementById('modal-title').textContent=title;
+    document.getElementById('modal-msg').textContent=msg||'';
+    document.getElementById('modal-input').style.display='none';
+    const ok=document.getElementById('modal-ok');
+    ok.textContent=opts.okText||'OK';
+    ok.className='modal-btn '+(opts.danger?'danger':'primary');
+    document.getElementById('modal-cancel').textContent=opts.cancelText||'Cancel';
+    document.getElementById('modal-overlay').classList.add('open');
+  });
+}
+
+function showPrompt(title,msg,defaultVal){
+  return new Promise(resolve=>{
+    modalResolve=resolve;
+    document.getElementById('modal-title').textContent=title;
+    document.getElementById('modal-msg').textContent=msg||'';
+    const inp=document.getElementById('modal-input');
+    inp.style.display='block';
+    inp.value=defaultVal||'';
+    const ok=document.getElementById('modal-ok');
+    ok.textContent='Save';
+    ok.className='modal-btn primary';
+    document.getElementById('modal-cancel').textContent='Cancel';
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(()=>inp.focus(),100);
+  });
+}
+
+function closeModal(confirmed){
+  document.getElementById('modal-overlay').classList.remove('open');
+  const inp=document.getElementById('modal-input');
+  const isPrompt=inp.style.display!=='none';
+  if(modalResolve){
+    if(isPrompt)modalResolve(confirmed?inp.value:null);
+    else modalResolve(confirmed);
+    modalResolve=null;
+  }
+}
+
 
 function load(){try{const d=localStorage.getItem('ppl_v1');if(d)S={...S,...JSON.parse(d)}}catch(e){}}
 function save(){try{localStorage.setItem('ppl_v1',JSON.stringify(S))}catch(e){}}
@@ -543,41 +670,84 @@ function updateBottomBar(sid){
 }
 
 // ─────────────────────────────────────────────
-// REST TIMER
+// REST TIMER (timestamp-based — survives backgrounding)
 // ─────────────────────────────────────────────
+let activeRestTimer=null; // {sid,ei,si,endTime}
+
 function startRestTimer(sid,ei,si){
   const restKey=`${sid}_${ei}_${si}`;
   const dur=S.restTimers?.[restKey]||DEFAULT_REST;
-  // clear existing
   clearInterval(restTimerInterval);
-  // find or create rest timer el
+  // hide any previously visible rest timer
+  document.querySelectorAll('.rest-timer').forEach(el=>el.classList.add('hidden'));
   const el=document.getElementById(`rest-${ei}-${si}`);
   if(!el)return;
   el.classList.remove('hidden');
-  let remaining=dur;
-  const val=el.querySelector('.rest-time-val');
-  if(val)val.textContent=fmtTime(remaining*1000);
-  restTimerInterval=setInterval(()=>{
-    remaining--;
-    if(val)val.textContent=fmtTime(remaining*1000);
-    if(remaining<=0){
-      clearInterval(restTimerInterval);
-      el.classList.add('hidden');
-      // vibrate if available
-      if(navigator.vibrate)navigator.vibrate([200,100,200]);
-    }
-  },1000);
+  // store END TIME as a wall-clock timestamp
+  const endTime=Date.now()+dur*1000;
+  activeRestTimer={sid,ei,si,endTime};
+  S.activeRest={sid,ei,si,endTime};
+  save();
+  tickRestTimer();
+  restTimerInterval=setInterval(tickRestTimer,250);
 }
 
-function setRestDuration(sid,ei,si){
+function tickRestTimer(){
+  if(!activeRestTimer){clearInterval(restTimerInterval);return;}
+  const {ei,si,endTime}=activeRestTimer;
+  const el=document.getElementById(`rest-${ei}-${si}`);
+  if(!el){clearInterval(restTimerInterval);activeRestTimer=null;return;}
+  const remainingMs=endTime-Date.now();
+  const val=el.querySelector('.rest-time-val');
+  if(remainingMs<=0){
+    clearInterval(restTimerInterval);
+    el.classList.add('hidden');
+    activeRestTimer=null;
+    delete S.activeRest;save();
+    if(navigator.vibrate)navigator.vibrate([200,100,200]);
+    return;
+  }
+  if(val)val.textContent=fmtTime(remainingMs);
+}
+
+function stopRestTimer(){
+  clearInterval(restTimerInterval);
+  if(activeRestTimer){
+    const el=document.getElementById(`rest-${activeRestTimer.ei}-${activeRestTimer.si}`);
+    if(el)el.classList.add('hidden');
+  }
+  activeRestTimer=null;
+  delete S.activeRest;save();
+}
+
+// resume rest timer if app was backgrounded and reopened
+function resumeRestTimer(){
+  if(!S.activeRest)return;
+  const {sid,ei,si,endTime}=S.activeRest;
+  if(Date.now()>=endTime){delete S.activeRest;save();return;}
+  if(S.currentSession!==sid)return;
+  const el=document.getElementById(`rest-${ei}-${si}`);
+  if(!el)return;
+  el.classList.remove('hidden');
+  activeRestTimer={sid,ei,si,endTime};
+  clearInterval(restTimerInterval);
+  tickRestTimer();
+  restTimerInterval=setInterval(tickRestTimer,250);
+}
+
+async function setRestDuration(sid,ei,si){
   const cur=S.restTimers?.[`${sid}_${ei}_${si}`]||DEFAULT_REST;
-  const inp=prompt(`Rest duration for this set (seconds):`,cur);
+  const inp=await showPrompt('Rest duration','Seconds to rest after this set',cur);
   if(!inp)return;
   const val=parseInt(inp);
   if(!val||val<10)return;
   if(!S.restTimers)S.restTimers={};
   S.restTimers[`${sid}_${ei}_${si}`]=val;
   save();
+  // restart the timer with new duration if it's currently running
+  if(activeRestTimer&&activeRestTimer.ei===ei&&activeRestTimer.si===si){
+    startRestTimer(sid,ei,si);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -628,15 +798,16 @@ function renderWorkout(sid){
 
 function renderExBlock(sid,ex,ei){
   const advice=getProgressionAdvice(sid,ei);
-  const repsDisplay=Array.isArray(ex.reps)?ex.reps.join('→'):ex.reps;
+  const repsDisplay=ex.repRange?`${ex.repRange[0]}–${ex.repRange[1]} reps`:(ex.reps||'');
   const lastDate=getLastSessionDate(sid);
   const lastSets=[];
   if(lastDate){
     for(let si=0;si<ex.sets;si++){
       const d=S.setLogs[`${lastDate}_${sid}_${ei}_${si}`];
-      if(d&&d.kg)lastSets.push(`${d.kg}kg×${d.reps||'?'}`);
+      if(d&&d.reps)lastSets.push(d.reps);
     }
   }
+  const lastKg=lastDate?S.setLogs[`${lastDate}_${sid}_${ei}_0`]?.kg:null;
   let adviceHtml='';
   if(advice){
     const icons={increase:'↑',hold:'→',reduce:'↓'};
@@ -646,7 +817,7 @@ function renderExBlock(sid,ex,ei){
     <div class="ex-block-header">
       <div style="flex:1">
         <div class="ex-block-name">${ex.name}</div>
-        <div class="ex-block-meta">${ex.sets} sets · ${repsDisplay}${lastSets.length?` · Last: ${lastSets.join(', ')}`:''}${ex.repRange?` · Range: ${ex.repRange[0]}–${ex.repRange[1]}`:''}${ex.compound?' · <span style="color:var(--legs);font-size:10px">compound</span>':''}</div>
+        <div class="ex-block-meta">${ex.sets} sets · ${repsDisplay}${lastSets.length&&lastKg?` · Last: ${lastKg}kg × ${lastSets.join(', ')}`:''}${ex.compound?' · <span style="color:var(--legs);font-size:10px">compound</span>':''}</div>
       </div>
       <button class="info-btn" onclick="toggleNote(${ei})" title="Form note">ℹ</button>
     </div>
@@ -667,15 +838,21 @@ function renderExBlock(sid,ex,ei){
 function renderSetRow(sid,ex,ei,si,totalSets){
   const k=logKey(sid,ei,si);
   const sv=S.setLogs[k]||{};
-  const lastSet=getLastSetData(sid,ei,si);
   const advice=getProgressionAdvice(sid,ei);
-  const targetReps=Array.isArray(ex.reps)?String(ex.reps[si]||ex.reps[ex.reps.length-1]):String(ex.reps);
-  const sugKg=sv.kg||(advice?.nextKg?String(advice.nextKg):'')|| (lastSet?.kg||'')||(ex.startKg>0?String(ex.startKg):'');
-  const sugReps=sv.reps||targetReps;
+  const lastSet=getLastSetData(sid,ei,si);
+  // rep target display
+  const repTarget=ex.repRange?`${ex.repRange[0]}–${ex.repRange[1]}`:(ex.reps||'');
+  // double progression: SAME weight all sets
+  const baseKg=(advice?.nextKg!==undefined&&advice?.nextKg!==null?String(advice.nextKg):'')||(ex.startKg>0?String(ex.startKg):'');
+  const sugKg=sv.kg||baseKg;
+  // reps: show what you did last time so you know what to beat
+  const lastReps=lastSet?.reps||'';
+  const sugReps=sv.reps||'';
   const isDone=!!sv.done;
   const restDur=S.restTimers?.[`${sid}_${ei}_${si}`]||DEFAULT_REST;
+  const beatText=lastReps?`beat ${lastReps}`:repTarget;
   return`<div class="set-row ${isDone?'logged':''}" id="set-row-${ei}-${si}">
-    <span class="set-num-label">Set ${si+1}<br><span style="font-size:9px;opacity:.6">${targetReps} reps</span></span>
+    <span class="set-num-label">Set ${si+1}<br><span style="font-size:9px;opacity:.6">${beatText}</span></span>
     <input type="number" class="set-kg-inp" placeholder="kg" value="${sugKg}" id="kg-${ei}-${si}" step="2.5" oninput="saveInp('${sid}',${ei},${si})">
     <input type="text" inputmode="numeric" class="set-reps-inp" placeholder="reps" value="${sugReps}" id="reps-${ei}-${si}" oninput="saveInp('${sid}',${ei},${si})">
     <div class="effort-pills">
@@ -686,7 +863,7 @@ function renderSetRow(sid,ex,ei,si,totalSets){
   <div class="rest-timer hidden" id="rest-${ei}-${si}">
     ⏱ Rest <span class="rest-time-val">${fmtTime(restDur*1000)}</span>
     <button class="rest-edit" onclick="setRestDuration('${sid}',${ei},${si})">edit</button>
-    <button class="rest-edit" onclick="document.getElementById('rest-${ei}-${si}').classList.add('hidden')">skip</button>
+    <button class="rest-edit" onclick="stopRestTimer()">skip</button>
   </div>`;
 }
 
@@ -801,8 +978,11 @@ function finishSession(){
   S.sessions.push({date:td,sessionId:sid,label:SESSIONS[sid].label,duration:mins});
   // reset custom set counts for this session
   if(S.customSetCounts){Object.keys(S.customSetCounts).filter(k=>k.startsWith(sid+'_')).forEach(k=>delete S.customSetCounts[k]);}
+  delete S.activeRest;
+  activeRestTimer=null;
   save();
   clearInterval(workoutTimerInterval);
+  clearInterval(restTimerInterval);
   document.getElementById('bottom-bar').classList.add('hidden');
   document.getElementById('workout-area').innerHTML=`<div class="card" style="text-align:center;padding:2rem">
     <div style="font-size:36px;margin-bottom:8px">${SESSIONS[sid].icon}</div>
@@ -811,6 +991,77 @@ function finishSession(){
     <button onclick="selectSession('${sid}')" style="margin-top:12px;padding:7px 16px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;cursor:pointer;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif">Review sets</button>
   </div>`;
   renderWeekStrip();renderBanner();renderPicker();
+}
+
+async function cancelWorkout(){
+  const sid=S.currentSession;
+  if(!sid)return;
+  // always use today() for the live workout — never activeDate (that's for past logger)
+  activeDate=null;
+  const td=today();
+  const loggedCount=Object.keys(S.setLogs).filter(k=>k.startsWith(`${td}_${sid}_`)&&S.setLogs[k].done).length;
+  if(loggedCount>0){
+    const ok=await showConfirm('Cancel workout?',`${loggedCount} logged set${loggedCount>1?'s':''} will be deleted.`,{okText:'Delete',danger:true});
+    if(!ok)return;
+  }
+  // delete ALL set logs for today + this session (done or not)
+  Object.keys(S.setLogs).forEach(k=>{
+    if(k.startsWith(`${td}_${sid}_`))delete S.setLogs[k];
+  });
+  // delete timer
+  if(S.workoutTimers)delete S.workoutTimers[`${td}_${sid}`];
+  // delete session entry
+  S.sessions=S.sessions.filter(s=>!(s.date===td&&s.sessionId===sid));
+  // reset custom set counts
+  if(S.customSetCounts){
+    Object.keys(S.customSetCounts).forEach(k=>{if(k.startsWith(sid+'_'))delete S.customSetCounts[k];});
+  }
+  S.currentSession=null;
+  delete S.activeRest;
+  activeRestTimer=null;
+  save();
+  clearInterval(workoutTimerInterval);
+  clearInterval(restTimerInterval);
+  workoutTimerInterval=null;
+  restTimerInterval=null;
+  document.getElementById('bottom-bar').classList.add('hidden');
+  document.getElementById('workout-area').innerHTML='';
+  renderWeekStrip();renderBanner();renderPicker();
+}
+
+async function resetSessionSets(){
+  const sid=S.currentSession;
+  if(!sid)return;
+  activeDate=null;
+  const td=today();
+  const loggedCount=Object.keys(S.setLogs).filter(k=>k.startsWith(`${td}_${sid}_`)&&S.setLogs[k].done).length;
+  if(loggedCount>0){
+    const ok=await showConfirm('Reset all sets?',`${loggedCount} logged set${loggedCount>1?'s':''} will be cleared. You'll stay in the workout.`,{okText:'Reset',danger:true});
+    if(!ok)return;
+  }
+  // clear all set logs for today + this session
+  Object.keys(S.setLogs).forEach(k=>{if(k.startsWith(`${td}_${sid}_`))delete S.setLogs[k];});
+  // reset the workout timer so it starts fresh on next set
+  if(S.workoutTimers)delete S.workoutTimers[`${td}_${sid}`];
+  // clear rest timer
+  delete S.activeRest;
+  activeRestTimer=null;
+  clearInterval(restTimerInterval);
+  clearInterval(workoutTimerInterval);
+  save();
+  // re-render the workout — effort pills will now be unselected
+  renderWorkout(sid);
+  document.getElementById('bottom-bar').classList.add('hidden');
+}
+
+async function deleteSession(date,sid){
+  const ok=await showConfirm('Delete session?',`${SESSIONS[sid]?.label||'This'} session from ${date} and all its sets will be removed.`,{okText:'Delete',danger:true});
+  if(!ok)return;
+  Object.keys(S.setLogs).filter(k=>k.startsWith(`${date}_${sid}_`)).forEach(k=>delete S.setLogs[k]);
+  if(S.workoutTimers)delete S.workoutTimers[`${date}_${sid}`];
+  S.sessions=S.sessions.filter(s=>!(s.date===date&&s.sessionId===sid));
+  save();
+  renderHistory();renderWeekStrip();renderBanner();renderProgress();
 }
 
 // ─────────────────────────────────────────────
@@ -825,6 +1076,7 @@ function switchTab(tab,btn){
   if(tab==='history')renderHistory();
   if(tab==='nutrition')renderNutrition();
   if(tab==='edit')renderEditList();
+  if(tab==='insights')renderInsights();
   // hide bottom bar when not on today
   if(tab!=='today')document.getElementById('bottom-bar').classList.add('hidden');
   else if(S.currentSession&&S.workoutTimers?.[today()+'_'+S.currentSession]){
@@ -890,12 +1142,25 @@ function renderPicker(){
 
 function selectSession(sid){
   if(!S.startDate){S.startDate=today();save();}
+  // tapping the same session again → deselect (only if nothing logged yet)
+  if(S.currentSession===sid&&sid!=='rest'){
+    const td=getActiveDate();
+    const loggedCount=Object.keys(S.setLogs).filter(k=>k.startsWith(`${td}_${sid}_`)&&S.setLogs[k].done).length;
+    if(loggedCount===0){
+      S.currentSession=null;save();
+      renderPicker();
+      document.getElementById('workout-area').innerHTML='';
+      document.getElementById('bottom-bar').classList.add('hidden');
+      clearInterval(workoutTimerInterval);
+      return;
+    }
+  }
   S.currentSession=sid;save();
   renderPicker();
   if(sid==='rest'){markRest(false);return;}
   renderWorkout(sid);
   // resume timer if already started today
-  if(S.workoutTimers?.[today()+'_'+sid]){
+  if(S.workoutTimers?.[today()+'_'+sid]&&!S.workoutTimers[today()+'_'+sid].end){
     document.getElementById('bottom-bar').classList.remove('hidden');
     clearInterval(workoutTimerInterval);
     workoutTimerInterval=setInterval(()=>updateBottomBar(sid),1000);
@@ -911,8 +1176,9 @@ function markRest(skipped){
   document.getElementById('workout-area').innerHTML=`<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:28px">😴</div><div style="font-size:15px;font-weight:600;margin-top:8px">${skipped?'Skipped today':'Rest day logged'}</div></div>`;
 }
 
-function resetStart(){
-  if(confirm('Reset cycle to today? Logs are kept.')){{S.startDate=today();save();renderBanner();renderPicker();renderWeekStrip();}}
+async function resetStart(){
+  const ok=await showConfirm('Reset cycle?','The PPL cycle will restart from today. All your logs are kept.',{okText:'Reset'});
+  if(ok){S.startDate=today();save();renderBanner();renderPicker();renderWeekStrip();}
 }
 
 // ─────────────────────────────────────────────
@@ -1020,7 +1286,13 @@ function deleteMeal(i){const td=today();S.meals[td].splice(i,1);save();renderNut
 function renderHistory(){
   if(!S.sessions.length){document.getElementById('history-list').innerHTML='<div class="empty">No sessions yet.</div>';return;}
   document.getElementById('history-list').innerHTML=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date)).map(sess=>{
-    if(sess.skipped||sess.sessionId==='rest')return`<div class="hist-row"><div class="hist-date">${sess.date}</div><div><div class="hist-label" style="color:var(--text3)">${sess.skipped?'Skipped':'Rest day'}</div></div></div>`;
+    if(sess.skipped||sess.sessionId==='rest'){
+      return`<div class="hist-row">
+        <div class="hist-date">${sess.date}</div>
+        <div style="flex:1"><div class="hist-label" style="color:var(--text3)">${sess.skipped?'Skipped':'Rest day'}</div></div>
+        <button onclick="deleteSession('${sess.date}','${sess.sessionId}')" style="border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0" title="Delete">×</button>
+      </div>`;
+    }
     const s=SESSIONS[sess.sessionId];if(!s)return'';
     let sets='';
     getExercises(sess.sessionId).filter(e=>!e.mobility).forEach((ex,ei)=>{
@@ -1029,8 +1301,29 @@ function renderHistory(){
       for(let si=0;si<setCount;si++){const d=S.setLogs[`${sess.date}_${sess.sessionId}_${ei}_${si}`];if(d&&d.kg)parts.push(`${d.kg}kg×${d.reps||'?'}`);}
       if(parts.length)sets+=`${ex.name}: ${parts.join(' ')}\n`;
     });
-    return`<div class="hist-row"><div class="hist-date">${sess.date}</div><div style="flex:1"><div class="hist-label" style="color:${s.color}">${s.icon} ${s.label}${sess.duration?` · ${sess.duration}min`:''}</div><div class="hist-sets">${sets||'No sets logged'}</div></div></div>`;
+    return`<div class="hist-row">
+      <div class="hist-date">${sess.date}</div>
+      <div style="flex:1">
+        <div class="hist-label" style="color:${s.color}">${s.icon} ${s.label}${sess.duration?` · ${sess.duration}min`:''}</div>
+        <div class="hist-sets">${sets||'No sets logged'}</div>
+      </div>
+      <button onclick="deleteSession('${sess.date}','${sess.sessionId}')" style="border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0" title="Delete session">×</button>
+    </div>`;
   }).join('');
+}
+
+async function clearAllData(){
+  const ok1=await showConfirm('Delete all data?','This cannot be undone. Export a backup first if you want to keep it.',{okText:'Continue',danger:true});
+  if(!ok1)return;
+  const ok2=await showConfirm('Are you sure?','Everything will be permanently deleted.',{okText:'Delete everything',danger:true});
+  if(!ok2)return;
+  localStorage.removeItem('ppl_v1');
+  S={startDate:null,setLogs:{},sessions:[],bodyMetrics:[],meals:{},currentSession:null,customExercises:{},restTimers:{},workoutTimers:{},customSetCounts:{}};
+  clearInterval(workoutTimerInterval);clearInterval(restTimerInterval);
+  document.getElementById('bottom-bar').classList.add('hidden');
+  document.getElementById('workout-area').innerHTML='';
+  renderHistory();renderWeekStrip();renderBanner();renderPicker();
+  alert('All data cleared.');
 }
 
 function exportData(){
@@ -1079,14 +1372,14 @@ function loadPastWorkout(){
   let html=`<div style="font-size:14px;font-weight:600;margin-bottom:10px;color:${sess.color}">${sess.icon} ${sess.label} — ${date}</div>`;
   mainExs.forEach((ex,idx)=>{
     const ei=exs.indexOf(ex);
-    const repsDisplay=Array.isArray(ex.reps)?ex.reps.join('→'):ex.reps;
+    const repsDisplay=ex.repRange?`${ex.repRange[0]}–${ex.repRange[1]} reps`:(ex.reps||'');
     html+=`<div class="ex-block" style="margin-bottom:8px">
       <div class="ex-block-header"><div style="flex:1"><div class="ex-block-name">${ex.name}</div><div class="ex-block-meta">${ex.sets} sets · ${repsDisplay}</div></div></div>
       <div class="sets-container">`;
     for(let si=0;si<ex.sets;si++){
       const k=pastLogKey(date,sid,ei,si);
       const sv=S.setLogs[k]||{};
-      const targetReps=Array.isArray(ex.reps)?String(ex.reps[si]||ex.reps[ex.reps.length-1]):String(ex.reps);
+      const targetReps=ex.repRange?`${ex.repRange[0]}-${ex.repRange[1]}`:(ex.reps||'');
       const defaultKg=sv.kg||(ex.startKg>0?String(ex.startKg):'');
       const defaultReps=sv.reps||targetReps;
       html+=`<div class="past-set-row ${sv.done?'logged':''}" id="past-row-${ei}-${si}">
@@ -1152,7 +1445,7 @@ function renderEditList(){
   document.getElementById('edit-list').innerHTML=exs.map((ex,i)=>`
     <div class="edit-ex-row" id="edit-row-${i}">
       <div class="edit-ex-main">
-        <div style="flex:1"><div style="font-size:13px;font-weight:500">${ex.name}</div><div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${ex.sets}x${Array.isArray(ex.reps)?ex.reps.join('->'):ex.reps}</div></div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${ex.name}</div><div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${ex.sets}x${ex.repRange?ex.repRange[0]+'-'+ex.repRange[1]:(ex.reps||'')}</div></div>
         <div style="display:flex;gap:4px">
           ${i>0?`<button class="icon-btn" onclick="moveEx(${i},-1)">↑</button>`:'<div style="width:30px"></div>'}
           ${i<exs.length-1?`<button class="icon-btn" onclick="moveEx(${i},1)">↓</button>`:'<div style="width:30px"></div>'}
@@ -1166,7 +1459,7 @@ function renderEditList(){
           <div><div class="edit-label">SETS</div><input class="edit-inp" type="number" value="${ex.sets}" id="e-sets-${i}"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div><div class="edit-label">REPS</div><input class="edit-inp" type="text" value="${Array.isArray(ex.reps)?ex.reps.join(','):ex.reps}" id="e-reps-${i}"></div>
+          <div><div class="edit-label">REPS</div><input class="edit-inp" type="text" value="${ex.repRange?ex.repRange[0]+'-'+ex.repRange[1]:(ex.reps||'')}" id="e-reps-${i}"></div>
           <div><div class="edit-label">START KG</div><input class="edit-inp" type="number" value="${ex.startKg||0}" id="e-kg-${i}"></div>
         </div>
         <div class="edit-label">FORM NOTE</div>
@@ -1181,13 +1474,21 @@ function renderEditList(){
 }
 function toggleEditBody(i){document.getElementById('edit-body-'+i).classList.toggle('open');}
 function moveEx(i,dir){const exs=getExercises(editSid);const j=i+dir;if(j<0||j>=exs.length)return;[exs[i],exs[j]]=[exs[j],exs[i]];saveExercises(editSid,exs);renderEditList();}
-function deleteEx(i){if(!confirm('Delete?'))return;const exs=getExercises(editSid);exs.splice(i,1);saveExercises(editSid,exs);renderEditList();}
+async function deleteEx(i){
+  const exs=getExercises(editSid);
+  const ok=await showConfirm('Delete exercise?',`"${exs[i].name}" will be removed from this session.`,{okText:'Delete',danger:true});
+  if(!ok)return;
+  exs.splice(i,1);saveExercises(editSid,exs);renderEditList();
+}
 function saveEx(i){
   const exs=getExercises(editSid);
   exs[i].name=document.getElementById(`e-name-${i}`).value.trim()||exs[i].name;
   exs[i].sets=parseInt(document.getElementById(`e-sets-${i}`).value)||exs[i].sets;
-  const rv=document.getElementById(`e-reps-${i}`).value;
-  exs[i].reps=rv.includes(',')?rv.split(',').map(v=>parseInt(v.trim())):rv;
+  const rv=document.getElementById(`e-reps-${i}`).value.trim();
+  // parse "8-12" or "8–12" into repRange
+  const rangeMatch=rv.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+  if(rangeMatch){exs[i].repRange=[parseInt(rangeMatch[1]),parseInt(rangeMatch[2])];exs[i].reps=null;}
+  else{exs[i].repRange=null;exs[i].reps=rv;}
   exs[i].startKg=parseFloat(document.getElementById(`e-kg-${i}`).value)||0;
   exs[i].note=document.getElementById(`e-note-${i}`).value;
   saveExercises(editSid,exs);renderEditList();
@@ -1203,13 +1504,15 @@ async function regenHint(i){
 function addExercise(){
   const name=document.getElementById('new-ex-name').value.trim();if(!name){alert('Enter a name.');return;}
   const sets=parseInt(document.getElementById('new-ex-sets').value)||3;
-  const rv=document.getElementById('new-ex-reps').value||'10-12';
-  const reps=rv.includes(',')?rv.split(',').map(v=>parseInt(v.trim())):rv;
+  const rv=(document.getElementById('new-ex-reps').value||'10-14').trim();
+  const rangeMatch=rv.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+  const repRange=rangeMatch?[parseInt(rangeMatch[1]),parseInt(rangeMatch[2])]:null;
+  const reps=rangeMatch?null:rv;
   const kg=parseFloat(document.getElementById('new-ex-kg').value)||0;
   const type=document.getElementById('new-ex-type').value;
   const note=document.getElementById('new-ex-note').value;
   const exs=getExercises(editSid);
-  exs.push({name,sets,reps,startKg:kg,note,compound:type==='compound',mobility:type==='mobility',glute:false,repRange:null});
+  exs.push({name,sets,reps,repRange,startKg:kg,note,compound:type==='compound',mobility:type==='mobility',glute:false});
   saveExercises(editSid,exs);
   ['new-ex-name','new-ex-note','new-ex-sets','new-ex-reps','new-ex-kg'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('gen-status').textContent='';renderEditList();
@@ -1230,7 +1533,11 @@ async function callClaude(name,sid){
     const d=await r.json();return d?.content?.[0]?.text||null;
   }catch{return null;}
 }
-function resetToDefaults(){if(!confirm('Reset?'))return;if(S.customExercises)delete S.customExercises[editSid];save();renderEditList();}
+async function resetToDefaults(){
+  const ok=await showConfirm('Reset exercises?','This session will be restored to the default exercise list. Your logs are kept.',{okText:'Reset'});
+  if(!ok)return;
+  if(S.customExercises)delete S.customExercises[editSid];save();renderEditList();
+}
 
 // ─── INIT ───
 function init(){
@@ -1244,8 +1551,40 @@ function init(){
       workoutTimerInterval=setInterval(()=>updateBottomBar(S.currentSession),1000);
       updateBottomBar(S.currentSession);
     }
+    // resume rest timer if one was running when app was closed
+    setTimeout(resumeRestTimer,100);
   }
 }
+
+// when app returns to foreground (iOS PWA), recalculate timers from wall clock
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    // re-sync workout timer
+    if(S.currentSession&&S.workoutTimers?.[today()+'_'+S.currentSession]&&!S.workoutTimers[today()+'_'+S.currentSession].end){
+      clearInterval(workoutTimerInterval);
+      workoutTimerInterval=setInterval(()=>updateBottomBar(S.currentSession),1000);
+      updateBottomBar(S.currentSession);
+    }
+    // re-sync rest timer
+    if(S.activeRest){
+      if(Date.now()>=S.activeRest.endTime){
+        // rest finished while backgrounded
+        const el=document.getElementById(`rest-${S.activeRest.ei}-${S.activeRest.si}`);
+        if(el)el.classList.add('hidden');
+        activeRestTimer=null;
+        delete S.activeRest;save();
+      } else {
+        resumeRestTimer();
+      }
+    }
+  }
+});
+
+// also handle iOS PWA resume via pageshow
+window.addEventListener('pageshow',()=>{
+  if(S.activeRest&&Date.now()<S.activeRest.endTime)resumeRestTimer();
+});
+
 init();
 </script>
 </body>

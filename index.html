@@ -102,17 +102,31 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .advice-strip{padding:7px 14px;font-size:12px;font-family:'DM Mono',monospace;border-top:0.5px solid var(--border);display:flex;align-items:center;gap:6px}
 
 /* ── Set rows (flat, like the app screenshot) ── */
-.sets-container{padding:0 14px 10px}
-.set-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--border)}
-.set-row:last-of-type{border-bottom:none}
-.set-num-label{font-size:12px;font-family:'DM Mono',monospace;color:var(--text3);min-width:44px;flex-shrink:0}
-.set-kg-inp{width:60px;font-size:15px;font-weight:600;font-family:'DM Mono',monospace;padding:6px 8px;border:0.5px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);text-align:center;flex-shrink:0}
+/* ── Set rows with rep picker ── */
+.sets-container{padding:0 12px 10px}
+.set-block-row{padding:10px 0;border-bottom:0.5px solid var(--border)}
+.set-block-row:last-of-type{border-bottom:none}
+.set-block-row.logged{background:var(--green-dim);border-radius:10px;padding-left:8px;padding-right:8px;margin-left:-8px;margin-right:-8px;border-bottom-color:transparent}
+.set-top-line{display:flex;align-items:center;gap:6px}
+.set-num-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);min-width:62px;flex-shrink:0;line-height:1.35}
+.kg-wrap{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.kg-adj{width:26px;height:30px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.kg-adj:active{background:var(--surface2)}
+.set-kg-inp{width:50px;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;padding:6px 2px;border:0.5px solid var(--border2);border-radius:7px;background:var(--bg);color:var(--text);text-align:center;flex-shrink:0;height:30px}
 .set-kg-inp:focus{outline:none;border-color:var(--green)}
-.set-reps-inp{width:52px;font-size:15px;font-weight:600;font-family:'DM Mono',monospace;padding:6px 6px;border:0.5px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);text-align:center;flex-shrink:0}
+.set-reps-inp{width:100%;font-size:15px;font-weight:600;font-family:'DM Mono',monospace;padding:7px;border:0.5px solid var(--border2);border-radius:7px;background:var(--bg);color:var(--text);text-align:center}
 .set-reps-inp:focus{outline:none;border-color:var(--green)}
-.set-reps-label{font-size:11px;color:var(--text3);flex-shrink:0}
 .effort-pills{display:flex;gap:3px;flex:1;justify-content:flex-end}
-.eff-pill{width:24px;height:24px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;font-size:11px;font-weight:700;cursor:pointer;color:var(--text3);font-family:'DM Mono',monospace;transition:all .12s;flex-shrink:0}
+.eff-pill{width:30px;height:30px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;font-size:13px;font-weight:700;cursor:pointer;color:var(--text3);font-family:'DM Mono',monospace;transition:all .12s;flex-shrink:0;padding:0;display:flex;align-items:center;justify-content:center}
+
+/* rep picker */
+.rep-picker{display:flex;gap:3px;margin-top:8px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.rep-picker::-webkit-scrollbar{display:none}
+.rep-btn{min-width:32px;height:32px;border-radius:7px;border:0.5px solid var(--border);background:var(--surface2);color:var(--text3);font-size:13px;font-weight:600;font-family:'DM Mono',monospace;cursor:pointer;flex-shrink:0;transition:all .12s;padding:0}
+.rep-btn.out{opacity:.4;background:transparent}
+.rep-btn.target{border-color:var(--blue);color:var(--blue-text);border-width:1.5px;background:var(--blue-dim)}
+.rep-btn.sel{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;transform:scale(1.05)}
+.rep-btn:active{transform:scale(0.95)}
 .eff-pill.s1{}.eff-pill.s2{}.eff-pill.s3{}.eff-pill.s4{}.eff-pill.s5{}
 .eff-pill.sel.s1{background:#DCFCE7;border-color:#16A34A;color:#15803D}
 .eff-pill.sel.s2{background:#D1FAE5;border-color:#22C55E;color:#166534}
@@ -126,7 +140,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   .eff-pill.sel.s4{background:#2D1000;border-color:#F97316;color:#FDBA74}
   .eff-pill.sel.s5{background:#2D0A0A;border-color:#EF4444;color:#FCA5A5}
 }
-.set-done-tick{font-size:14px;color:var(--green-text);min-width:18px;text-align:right;flex-shrink:0}
+.set-done-tick{font-size:13px;color:var(--green-text);width:0;overflow:visible;flex-shrink:0}
 .set-row.logged{background:var(--green-dim);border-radius:8px;padding-left:6px;padding-right:6px;margin-left:-6px;margin-right:-6px}
 @media(prefers-color-scheme:dark){.set-row.logged{background:var(--green-dim)}}
 
@@ -840,25 +854,54 @@ function renderSetRow(sid,ex,ei,si,totalSets){
   const sv=S.setLogs[k]||{};
   const advice=getProgressionAdvice(sid,ei);
   const lastSet=getLastSetData(sid,ei,si);
-  // rep target display
-  const repTarget=ex.repRange?`${ex.repRange[0]}–${ex.repRange[1]}`:(ex.reps||'');
-  // double progression: SAME weight all sets
+  const range=ex.repRange;
+  // target = middle of range
+  const target=range?Math.round((range[0]+range[1])/2):null;
   const baseKg=(advice?.nextKg!==undefined&&advice?.nextKg!==null?String(advice.nextKg):'')||(ex.startKg>0?String(ex.startKg):'');
   const sugKg=sv.kg||baseKg;
-  // reps: show what you did last time so you know what to beat
-  const lastReps=lastSet?.reps||'';
-  const sugReps=sv.reps||'';
+  const lastReps=lastSet?.reps?parseInt(lastSet.reps):null;
+  const loggedReps=sv.reps?parseInt(sv.reps):null;
   const isDone=!!sv.done;
   const restDur=S.restTimers?.[`${sid}_${ei}_${si}`]||DEFAULT_REST;
-  const beatText=lastReps?`beat ${lastReps}`:repTarget;
-  return`<div class="set-row ${isDone?'logged':''}" id="set-row-${ei}-${si}">
-    <span class="set-num-label">Set ${si+1}<br><span style="font-size:9px;opacity:.6">${beatText}</span></span>
-    <input type="number" class="set-kg-inp" placeholder="kg" value="${sugKg}" id="kg-${ei}-${si}" step="2.5" oninput="saveInp('${sid}',${ei},${si})">
-    <input type="text" inputmode="numeric" class="set-reps-inp" placeholder="reps" value="${sugReps}" id="reps-${ei}-${si}" oninput="saveInp('${sid}',${ei},${si})">
-    <div class="effort-pills">
-      ${[1,2,3,4,5].map(e=>`<button class="eff-pill s${e} ${sv.effort===e?'sel':''}" onclick="logSetEffort('${sid}',${ei},${si},${e},this)">${e}</button>`).join('')}
+  const repMax=range?range[1]:null;
+  const atMax=lastReps&&repMax&&lastReps>=repMax;
+
+  // sub-label: target + last session
+  const subLabel=lastReps
+    ? `<span style="color:var(--text3)">tgt ${target}</span> <span style="color:${atMax?'var(--green-text)':'var(--blue-text)'};font-weight:600">· last ${lastReps}${atMax?'✓':''}</span>`
+    : (target?`<span style="color:var(--text3)">target ${target}</span>`:`<span style="color:var(--text3)">${ex.reps||''}</span>`);
+
+  // rep picker: show range of tappable numbers
+  let repPicker='';
+  if(range){
+    const lo=Math.max(1,range[0]-2);
+    const hi=range[1]+3;
+    const nums=[];
+    for(let n=lo;n<=hi;n++)nums.push(n);
+    repPicker=`<div class="rep-picker" id="rp-${ei}-${si}">
+      ${nums.map(n=>{
+        const isTarget=n===target;
+        const isSel=loggedReps===n;
+        const inRange=n>=range[0]&&n<=range[1];
+        return `<button class="rep-btn ${isSel?'sel':''} ${isTarget&&!isSel?'target':''} ${!inRange?'out':''}" onclick="pickReps('${sid}',${ei},${si},${n},this)">${n}</button>`;
+      }).join('')}
+    </div>`;
+  }
+
+  return`<div class="set-block-row ${isDone?'logged':''}" id="set-row-${ei}-${si}">
+    <div class="set-top-line">
+      <span class="set-num-label">Set ${si+1}<br><span style="font-size:9px">${subLabel}</span></span>
+      <div class="kg-wrap">
+        <button class="kg-adj" onclick="adjKg('${sid}',${ei},${si},-2.5)">−</button>
+        <input type="number" class="set-kg-inp" placeholder="kg" value="${sugKg}" id="kg-${ei}-${si}" step="2.5" oninput="saveInp('${sid}',${ei},${si})">
+        <button class="kg-adj" onclick="adjKg('${sid}',${ei},${si},2.5)">+</button>
+      </div>
+      <div class="effort-pills">
+        ${[1,2,3,4,5].map(e=>`<button class="eff-pill s${e} ${sv.effort===e?'sel':''}" onclick="logSetEffort('${sid}',${ei},${si},${e},this)">${e}</button>`).join('')}
+      </div>
     </div>
-    <span class="set-done-tick">${isDone?'✓':''}</span>
+    ${repPicker}
+    ${!range?`<input type="text" inputmode="numeric" class="set-reps-inp" placeholder="reps" value="${sv.reps||''}" id="reps-${ei}-${si}" oninput="saveInp('${sid}',${ei},${si})" style="margin-top:6px">`:''}
   </div>
   <div class="rest-timer hidden" id="rest-${ei}-${si}">
     ⏱ Rest <span class="rest-time-val">${fmtTime(restDur*1000)}</span>
@@ -890,13 +933,48 @@ function saveInp(sid,ei,si){
   save();
 }
 
+function pickReps(sid,ei,si,n,btn){
+  const k=logKey(sid,ei,si);
+  if(!S.setLogs[k])S.setLogs[k]={};
+  // save kg too
+  const kgEl=document.getElementById(`kg-${ei}-${si}`);
+  if(kgEl)S.setLogs[k].kg=kgEl.value;
+  // toggle: tapping same number again clears it
+  const same=parseInt(S.setLogs[k].reps)===n;
+  S.setLogs[k].reps=same?'':String(n);
+  save();
+  // update picker buttons
+  const picker=btn.closest('.rep-picker');
+  const exs=getExercises(sid);
+  const ex=exs[ei];
+  const range=ex.repRange;
+  const target=range?Math.round((range[0]+range[1])/2):null;
+  picker.querySelectorAll('.rep-btn').forEach(b=>{
+    const val=parseInt(b.textContent);
+    const inRange=range&&val>=range[0]&&val<=range[1];
+    const isSel=!same&&val===n;
+    const isTarget=val===target;
+    b.className='rep-btn'+(isSel?' sel':'')+(isTarget&&!isSel?' target':'')+(!inRange?' out':'');
+  });
+}
+
+function adjKg(sid,ei,si,delta){
+  const el=document.getElementById(`kg-${ei}-${si}`);
+  if(!el)return;
+  const cur=parseFloat(el.value)||0;
+  const next=Math.max(0,cur+delta);
+  el.value=next;
+  saveInp(sid,ei,si);
+}
+
+
 function logSetEffort(sid,ei,si,e,btn){
   const k=logKey(sid,ei,si);
   if(!S.setLogs[k])S.setLogs[k]={};
   const kg=document.getElementById(`kg-${ei}-${si}`)?.value;
   const reps=document.getElementById(`reps-${ei}-${si}`)?.value;
   if(kg!==undefined)S.setLogs[k].kg=kg;
-  if(reps!==undefined)S.setLogs[k].reps=reps;
+  if(reps!==undefined&&reps!=='')S.setLogs[k].reps=reps;
   const same=S.setLogs[k].effort===e;
   S.setLogs[k].effort=same?null:e;
   S.setLogs[k].done=!same;
@@ -907,9 +985,7 @@ function logSetEffort(sid,ei,si,e,btn){
   });
   // update row style
   const row=document.getElementById(`set-row-${ei}-${si}`);
-  if(row){row.classList.toggle('logged',S.setLogs[k].done);}
-  const tick=row?.querySelector('.set-done-tick');
-  if(tick)tick.textContent=S.setLogs[k].done?'✓':'';
+  if(row)row.classList.toggle('logged',S.setLogs[k].done);
   // start workout timer on first set
   if(!S.workoutTimers?.[getActiveDate()+'_'+sid])startWorkoutTimer(sid);
   // start rest timer

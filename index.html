@@ -421,8 +421,9 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     </div>
     <div id="gen-status" style="font-size:11px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace"></div>
   </div>
-  <div style="text-align:center;margin-top:8px">
-    <button onclick="resetToDefaults()" style="font-size:11px;color:var(--text3);border:none;background:transparent;cursor:pointer;font-family:'DM Mono',monospace;text-decoration:underline">Reset to defaults</button>
+  <div style="text-align:center;margin-top:8px;display:flex;gap:8px;justify-content:center">
+    <button onclick="resetToDefaults()" style="font-size:11px;color:var(--text3);border:0.5px solid var(--border2);background:transparent;cursor:pointer;font-family:'DM Mono',monospace;padding:6px 12px;border-radius:6px">Reset this session</button>
+    <button onclick="resetAllExercises()" style="font-size:11px;color:var(--red);border:0.5px solid var(--red);background:transparent;cursor:pointer;font-family:'DM Mono',monospace;padding:6px 12px;border-radius:6px">Reset ALL exercises</button>
   </div>
 </div>
 
@@ -566,7 +567,40 @@ function closeModal(confirmed){
 }
 
 
-function load(){try{const d=localStorage.getItem('ppl_v1');if(d)S={...S,...JSON.parse(d)}}catch(e){}}
+function load(){
+  try{const d=localStorage.getItem('ppl_v1');if(d)S={...S,...JSON.parse(d)}}catch(e){}
+  migrateExercises();
+}
+
+// repair custom exercises saved before repRange existed
+function migrateExercises(){
+  if(!S.customExercises)return;
+  let changed=false;
+  Object.keys(S.customExercises).forEach(sid=>{
+    const custom=S.customExercises[sid];
+    const defaults=SESSIONS[sid]?.exercises;
+    if(!custom||!defaults)return;
+    custom.forEach(ex=>{
+      // if exercise has no repRange, try to inherit from the default with the same name
+      if(ex.repRange===undefined||(ex.repRange===null&&!ex.mobility&&Array.isArray(ex.reps))){
+        const match=defaults.find(d=>d.name===ex.name);
+        if(match&&match.repRange){
+          ex.repRange=match.repRange;
+          ex.reps=null;
+          changed=true;
+        } else if(Array.isArray(ex.reps)){
+          // old rep array e.g. [12,10,8,6] → derive a range
+          const lo=Math.min(...ex.reps);
+          const hi=Math.max(...ex.reps);
+          ex.repRange=[lo,hi];
+          ex.reps=null;
+          changed=true;
+        }
+      }
+    });
+  });
+  if(changed)save();
+}
 function save(){try{localStorage.setItem('ppl_v1',JSON.stringify(S))}catch(e){}}
 function today(){return new Date().toISOString().split('T')[0]}
 function getActiveDate(){return activeDate||today()}
@@ -1609,10 +1643,267 @@ async function callClaude(name,sid){
     const d=await r.json();return d?.content?.[0]?.text||null;
   }catch{return null;}
 }
+
+async function resetAllExercises(){
+  const ok=await showConfirm('Reset ALL exercises?','Push, Pull and Legs will all be restored to the default exercise list with correct rep ranges. Your workout logs are kept.',{okText:'Reset all',danger:true});
+  if(!ok)return;
+  S.customExercises={};
+  save();
+  renderEditList();
+  // re-render current workout if one is open
+  if(S.currentSession&&S.currentSession!=='rest')renderWorkout(S.currentSession);
+  await showConfirm('Done','All exercises reset to defaults.',{okText:'OK',cancelText:''});
+}
+
 async function resetToDefaults(){
   const ok=await showConfirm('Reset exercises?','This session will be restored to the default exercise list. Your logs are kept.',{okText:'Reset'});
   if(!ok)return;
   if(S.customExercises)delete S.customExercises[editSid];save();renderEditList();
+}
+
+
+// ─────────────────────────────────────────────
+// INSIGHTS TAB
+// ─────────────────────────────────────────────
+function renderInsights(){
+  const real=S.sessions.filter(s=>!s.skipped&&s.sessionId!=='rest');
+  if(real.length<1){
+    document.getElementById('insights-content').innerHTML=`<div class="empty">Log a few sessions to unlock insights.<br><br>You'll see progression rates, projected strength targets, consistency, and volume trends here.</div>`;
+    return;
+  }
+
+  let html='';
+
+  // ── 1. Overview stats ──
+  const firstDate=real.map(s=>s.date).sort()[0];
+  const daysTraining=Math.max(1,Math.round((new Date(today())-new Date(firstDate))/86400000));
+  const weeksTraining=Math.max(1,daysTraining/7);
+  const avgPerWeek=(real.length/weeksTraining).toFixed(1);
+  const totalMins=real.reduce((a,s)=>a+(s.duration||0),0);
+  const avgMins=real.length?Math.round(totalMins/real.length):0;
+
+  html+=`<div class="sec-label">Overview</div>
+  <div class="three-col">
+    <div class="three-col-item"><div class="big-stat">${real.length}</div><div class="big-stat-label">sessions</div></div>
+    <div class="three-col-item"><div class="big-stat">${avgPerWeek}</div><div class="big-stat-label">per week</div></div>
+    <div class="three-col-item"><div class="big-stat">${avgMins}</div><div class="big-stat-label">avg min</div></div>
+  </div>`;
+
+  // ── 2. Consistency (last 28 days) ──
+  html+=`<div class="sec-label">Consistency — last 28 days</div><div class="insight-card">`;
+  let conDots='';
+  let trainedDays=0;
+  for(let i=27;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const sess=S.sessions.find(s=>s.date===ds);
+    let cls='con-dot';
+    if(sess){
+      if(sess.skipped)cls+=' skip';
+      else if(sess.sessionId==='rest')cls+=' rest';
+      else{cls+=' '+sess.sessionId;trainedDays++;}
+    }
+    conDots+=`<div class="${cls}" title="${ds}"></div>`;
+  }
+  const conPct=Math.round(trainedDays/28*100);
+  html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
+    <span style="font-size:13px;color:var(--text2)">Trained</span>
+    <span style="font-size:14px;font-weight:600;font-family:'DM Mono',monospace">${trainedDays} / 28 days · ${conPct}%</span>
+  </div>
+  <div class="consistency-bar">${conDots}</div>
+  <div style="font-size:11px;color:var(--text3);margin-top:8px;font-family:'DM Mono',monospace">
+    ${conPct>=70?'Excellent consistency — this is what drives results.':conPct>=50?'Decent. Aim for 5–6 sessions a week for faster progress.':'Consistency is your biggest lever right now.'}
+  </div></div>`;
+
+  // ── 3. Strength projections ──
+  const trackLifts=[
+    {name:'Incline DB press',sid:'push'},
+    {name:'Cable chest fly',sid:'push'},
+    {name:'DB shoulder press',sid:'push'},
+    {name:'Cable row (seated)',sid:'pull'},
+    {name:'Lat pulldown',sid:'pull'},
+    {name:'Leg extension',sid:'legs'},
+    {name:'Seated leg curl',sid:'legs'},
+  ];
+
+  let projRows='';
+  trackLifts.forEach(t=>{
+    const exs=getExercises(t.sid);
+    const ei=exs.findIndex(e=>e.name===t.name);
+    if(ei===-1)return;
+    const ex=exs[ei];
+    // gather kg history over time
+    const hist=[];
+    S.sessions.filter(s=>s.sessionId===t.sid&&!s.skipped).sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>{
+      let maxKg=null;
+      const setCount=S.customSetCounts?.[t.sid+'_'+ei]??ex.sets;
+      for(let si=0;si<setCount;si++){
+        const d=S.setLogs[`${s.date}_${t.sid}_${ei}_${si}`];
+        if(d&&d.kg){const kg=parseFloat(d.kg);if(!maxKg||kg>maxKg)maxKg=kg;}
+      }
+      if(maxKg)hist.push({date:s.date,kg:maxKg});
+    });
+    if(hist.length<1)return;
+
+    const current=hist[hist.length-1].kg;
+    const start=hist[0].kg;
+    const gain=current-start;
+
+    // progression rate: kg gained per week
+    let kgPerWeek=0;
+    if(hist.length>=2){
+      const daysSpan=Math.max(1,(new Date(hist[hist.length-1].date)-new Date(hist[0].date))/86400000);
+      kgPerWeek=(gain/daysSpan)*7;
+    }
+    // if no gain yet, estimate conservatively: 2.5kg per 3 sessions at ~2 sessions/wk = ~1.6kg/wk
+    // but cap at realistic rate
+    const estRate=kgPerWeek>0?Math.min(kgPerWeek,2.5):(ex.compound?1.2:0.8);
+    const proj1m=current+estRate*4.3;
+    const proj3m=current+estRate*13;
+    const proj5m=current+estRate*21.7;
+    // realistic dampening — progression slows over time
+    const p1=Math.round((current+estRate*4.3*0.9)*2)/2;
+    const p3=Math.round((current+estRate*13*0.7)*2)/2;
+    const p5=Math.round((current+estRate*21.7*0.55)*2)/2;
+
+    const trendClass=gain>0?'trend-up':gain<0?'trend-down':'trend-flat';
+    const trendIcon=gain>0?'↑':gain<0?'↓':'→';
+
+    projRows+=`<div class="proj-row">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
+        <span class="proj-lift">${t.name}</span>
+        <span style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace">${current}kg</span>
+      </div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);margin-bottom:6px">
+        Started ${start}kg · <span class="${trendClass}">${trendIcon} ${gain>0?'+':''}${gain.toFixed(1)}kg</span>${hist.length>1?` · ~${estRate.toFixed(1)}kg/wk`:' · new'}
+      </div>
+      <div class="proj-timeline">
+        <div class="proj-milestone">
+          <div class="proj-dot current"></div>
+          <div class="proj-kg">${current}kg</div>
+          <div class="proj-when">now</div>
+        </div>
+        <div class="proj-milestone">
+          <div class="proj-dot future"></div>
+          <div class="proj-kg">${p1}kg</div>
+          <div class="proj-when">1 mo</div>
+        </div>
+        <div class="proj-milestone">
+          <div class="proj-dot future"></div>
+          <div class="proj-kg">${p3}kg</div>
+          <div class="proj-when">3 mo</div>
+        </div>
+        <div class="proj-milestone">
+          <div class="proj-dot future"></div>
+          <div class="proj-kg">${p5}kg</div>
+          <div class="proj-when">5 mo</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  if(projRows){
+    html+=`<div class="sec-label">Strength projections</div>
+    <div class="insight-card">${projRows}
+    <div style="font-size:10px;color:var(--text3);margin-top:10px;font-family:'DM Mono',monospace;line-height:1.6">
+      Projections assume current progression rate with realistic slowdown. Expect stalls — they're normal.
+    </div></div>`;
+  }
+
+  // ── 4. Volume trend (last 6 weeks) ──
+  const weeks=[];
+  for(let w=5;w>=0;w--){
+    const end=new Date();end.setDate(end.getDate()-w*7);
+    const start=new Date(end);start.setDate(start.getDate()-6);
+    let vol=0;
+    S.sessions.filter(s=>!s.skipped&&s.sessionId!=='rest').forEach(s=>{
+      const d=new Date(s.date);
+      if(d>=start&&d<=end){
+        const exs=getExercises(s.sessionId);
+        exs.forEach((ex,ei)=>{
+          const setCount=S.customSetCounts?.[s.sessionId+'_'+ei]??ex.sets;
+          for(let si=0;si<setCount;si++){
+            const dd=S.setLogs[`${s.date}_${s.sessionId}_${ei}_${si}`];
+            if(dd&&dd.kg&&dd.reps)vol+=parseFloat(dd.kg)*parseInt(dd.reps);
+          }
+        });
+      }
+    });
+    weeks.push({label:w===0?'now':`-${w}w`,vol:Math.round(vol)});
+  }
+  const maxVol=Math.max(...weeks.map(w=>w.vol),1);
+  if(maxVol>1){
+    const volBars=weeks.map(w=>`<div class="vol-bar-wrap">
+      <div class="vol-bar" style="height:${Math.max(3,w.vol/maxVol*55)}px" title="${w.vol}kg"></div>
+      <div class="vol-bar-label">${w.label}</div>
+    </div>`).join('');
+    const thisWeek=weeks[weeks.length-1].vol;
+    const lastWeek=weeks[weeks.length-2]?.vol||0;
+    const volChange=lastWeek?Math.round((thisWeek-lastWeek)/lastWeek*100):0;
+    html+=`<div class="sec-label">Total volume — last 6 weeks</div>
+    <div class="insight-card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:13px;color:var(--text2)">This week</span>
+        <span style="font-size:14px;font-weight:600;font-family:'DM Mono',monospace">${thisWeek.toLocaleString()}kg
+          ${lastWeek?`<span class="${volChange>0?'trend-up':volChange<0?'trend-down':'trend-flat'}" style="font-size:11px">${volChange>0?'+':''}${volChange}%</span>`:''}
+        </span>
+      </div>
+      <div class="volume-bar-row">${volBars}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace">Volume = weight × reps across all sets. Rising volume drives growth.</div>
+    </div>`;
+  }
+
+  // ── 5. Session split ──
+  const counts={push:0,pull:0,legs:0};
+  real.forEach(s=>{if(counts[s.sessionId]!==undefined)counts[s.sessionId]++;});
+  const totalSess=counts.push+counts.pull+counts.legs;
+  if(totalSess>0){
+    const imbalance=Math.max(counts.push,counts.pull,counts.legs)-Math.min(counts.push,counts.pull,counts.legs);
+    html+=`<div class="sec-label">Session balance</div>
+    <div class="insight-card">
+      <div class="stat-row"><span class="stat-label">🤜 Push</span><span class="stat-val" style="color:var(--push)">${counts.push}</span></div>
+      <div class="stat-row"><span class="stat-label">🤛 Pull</span><span class="stat-val" style="color:var(--pull)">${counts.pull}</span></div>
+      <div class="stat-row"><span class="stat-label">🦵 Legs</span><span class="stat-val" style="color:var(--legs)">${counts.legs}</span></div>
+      <div style="font-size:11px;color:${imbalance>=3?'var(--yellow)':'var(--text3)'};margin-top:8px;font-family:'DM Mono',monospace">
+        ${imbalance>=3?`⚠ ${counts.legs<counts.push?'Legs are lagging':'Sessions are unbalanced'} — aim for even split.`:'Well balanced across all three.'}
+      </div>
+    </div>`;
+  }
+
+  // ── 6. Body metrics trend ──
+  if(S.bodyMetrics.length>=2){
+    const sorted=[...S.bodyMetrics].sort((a,b)=>a.date.localeCompare(b.date));
+    const first=sorted[0];
+    const last=sorted[sorted.length-1];
+    const wChange=(first.weight&&last.weight)?(parseFloat(last.weight)-parseFloat(first.weight)).toFixed(1):null;
+    const waistChange=(first.waist&&last.waist)?(parseFloat(last.waist)-parseFloat(first.waist)).toFixed(1):null;
+    html+=`<div class="sec-label">Body recomposition</div>
+    <div class="insight-card">
+      ${wChange!==null?`<div class="stat-row"><span class="stat-label">Weight</span><span class="stat-val ${wChange>0?'trend-up':wChange<0?'trend-down':''}">${last.weight}kg (${wChange>0?'+':''}${wChange})</span></div>`:''}
+      ${waistChange!==null?`<div class="stat-row"><span class="stat-label">Waist</span><span class="stat-val ${waistChange<0?'trend-up':waistChange>0?'trend-down':''}">${last.waist}cm (${waistChange>0?'+':''}${waistChange})</span></div>`:''}
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6">
+        ${waistChange!==null&&wChange!==null
+          ? (waistChange<0&&Math.abs(wChange)<1.5
+            ? '✓ Textbook recomp — waist down, weight stable. Muscle up, fat down.'
+            : waistChange<0&&wChange<0
+              ? '✓ Losing fat. Watch that strength does not drop — if it does, add carbs.'
+              : waistChange>0&&wChange>0
+                ? '⚠ Both up — likely gaining some fat. Check calories.'
+                : 'Keep tracking — trends need 4+ weeks to be meaningful.')
+          : 'Log weight and waist weekly to see recomp trends.'}
+      </div>
+    </div>`;
+  } else {
+    html+=`<div class="sec-label">Body recomposition</div>
+    <div class="insight-card">
+      <div style="font-size:12px;color:var(--text3);line-height:1.6">
+        Log your weight and waist in the Progress tab weekly. Waist is the honest metric — the scale lies during recomp.
+      </div>
+    </div>`;
+  }
+
+  html+=`<div style="height:20px"></div>`;
+  document.getElementById('insights-content').innerHTML=html;
 }
 
 // ─── INIT ───
